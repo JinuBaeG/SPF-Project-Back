@@ -1,0 +1,19 @@
+{
+  "name": "songym",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jinu9533/SonGym.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jinu9533/SonGym/issues"
+  },
+  "homepage": "https://github.com/jinu9533/SonGym#readme"
+}
