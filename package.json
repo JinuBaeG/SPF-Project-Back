@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": ""
+    "dev": "nodemon --exec ts-node src/server --ext ts,js --delay 2",
+    "migrate": "npx prisma migrate dev --preview-feature",
+    "studio": "npx prisma studio",
+    "preinstall": "npx npm-force-resolutions"
   },
   "repository": {
     "type": "git",
@@ -15,5 +18,35 @@
   "bugs": {
     "url": "https://github.com/jinu9533/SonGym/issues"
   },
-  "homepage": "https://github.com/jinu9533/SonGym#readme"
+  "homepage": "https://github.com/jinu9533/SonGym#readme",
+  "dependencies": {
+    "14": "^3.1.6",
+    "@graphql-tools/load-files": "^6.6.1",
+    "@graphql-tools/merge": "^8.3.6",
+    "@graphql-tools/schema": "^9.0.4",
+    "@prisma/client": "^4.3.1",
+    "apollo-server": "^2.25.2",
+    "apollo-server-express": "2.19",
+    "aws-sdk": "^2.1230.0",
+    "bcrypt": "^5.0.1",
+    "dotenv": "^16.0.2",
+    "graphql": "^15.8.0",
+    "graphql-tools": "^8.3.6",
+    "jsonwebtoken": "^8.5.1",
+    "morgan": "^1.10.0",
+    "n": "^9.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.19.1",
+    "@babel/node": "^7.19.1",
+    "@babel/preset-env": "^7.19.1",
+    "nodemon": "^2.0.20",
+    "prisma": "^4.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
+  },
+  "resolutions": {
+    "fs-capacitor": "^6.2.0",
+    "graphql-upload": "^11.0.0"
+  }
 }
