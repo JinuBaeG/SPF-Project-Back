@@ -1,13 +1,14 @@
-import { gql } from "apollo-server-express";
+import { gql } from "apollo-server";
 
 export default gql`
   type Photo {
-    id: String!
-    user: User
+    id: Int!
+    user: User!
     file: String!
     caption: String
     likes: Int!
-    comments: Int!
+    commentNumber: Int!
+    comments: [Comment]
     hashtag: [Hashtag]
     isMine: Boolean!
     isLiked: Boolean!
@@ -16,7 +17,7 @@ export default gql`
   }
 
   type Hashtag {
-    id: String!
+    id: Int!
     hashtag: String!
     photos(page: Int!): [Photo]
     totalPhotos: Int!
@@ -25,7 +26,7 @@ export default gql`
   }
 
   type Like {
-    id: String!
+    id: Int!
     photoId: Photo!
     createdAt: String!
     updatedAt: String!

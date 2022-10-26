@@ -1,4 +1,5 @@
 import client from "../client";
+import { protectedResolver } from "../users/users.utils";
 
 export default {
   Photo: {
@@ -27,19 +28,25 @@ export default {
         },
       });
     },
-    comments: ({ id }) => {
+    commentNumber: async ({ id }) => {
       return client.comment.count({
         where: {
           photoId: id,
         },
       });
     },
-    isMine: ({ userId }, _, { loggedInUser }) => {
+    comments: async ({ id }) => {
+      return client.comment.findMany({
+        where: { photoId: id },
+        include: { user: true },
+      });
+    },
+    isMine: protectedResolver(async ({ userId }, _, { loggedInUser }) => {
       if (!loggedInUser) {
         return false;
       }
       return userId === loggedInUser.id;
-    },
+    }),
     isLiked: async ({ id }, _, { loggedInUser }) => {
       if (!loggedInUser) {
         return false;
@@ -62,7 +69,7 @@ export default {
     },
   },
   Hashtag: {
-    photos: ({ id }, { page }, { loggedInUser }) => {
+    photos: async ({ id }, { page }, { loggedInUser }) => {
       return client.hashtag
         .findUnique({
           where: {
@@ -71,7 +78,7 @@ export default {
         })
         .photos();
     },
-    totalPhotos: ({ id }) => {
+    totalPhotos: async ({ id }) => {
       return client.photo.count({
         where: {
           hashtags: {
