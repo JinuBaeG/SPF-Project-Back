@@ -1,9 +1,7 @@
 import { protectedResolver } from "../../users/users.utils";
 
-const seeFeedResolver = async (_, { offset }, { loggedInUser, client }) => {
+const seeFeedResolver = async (_, __, { loggedInUser, client }) => {
   return await client.photo.findMany({
-    take: 2,
-    skip: offset,
     where: {
       OR: [
         {
