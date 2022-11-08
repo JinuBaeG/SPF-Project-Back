@@ -8,17 +8,21 @@ AWS.config.update({
 });
 
 export const uploadToS3 = async (file, userId, folderName) => {
-  const { filename, createReadStream } = await file;
-  const readStream = createReadStream();
-  const objectName = `${folderName}/${userId}-${Date.now()}-${filename}`;
-  const { Location } = await new AWS.S3()
-    .upload({
-      Bucket: "songym-uploads",
-      Key: objectName,
-      ACL: "public-read-write",
-      Body: readStream,
-    })
-    .promise();
+  try {
+    const { filename, createReadStream } = await file;
+    const readStream = createReadStream();
+    const objectName = `${folderName}/${userId}-${Date.now()}-${filename}`;
+    const { Location } = await new AWS.S3()
+      .upload({
+        Bucket: "songym-uploads",
+        Key: objectName,
+        ACL: "public-read-write",
+        Body: readStream,
+      })
+      .promise();
 
-  return Location;
+    return Location;
+  } catch (e) {
+    console.log(e);
+  }
 };

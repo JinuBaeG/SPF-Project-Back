@@ -22,7 +22,7 @@ const server = new ApolloServer({
         connection: { context },
       } = ctx;
       return {
-        loggedInUser: context,
+        loggedInUser: context.loggedInUser,
       };
     }
   },
