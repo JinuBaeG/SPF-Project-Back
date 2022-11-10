@@ -28,18 +28,18 @@
     "@graphql-tools/load-files": "^6.6.1",
     "@graphql-tools/merge": "^8.3.6",
     "@graphql-tools/schema": "^9.0.4",
+    "@prisma/client": "^4.6.0",
     "apollo-server": "^2.25.2",
     "apollo-server-express": "2.19",
     "aws-sdk": "^2.1230.0",
     "bcrypt": "^5.0.1",
     "dotenv": "^16.0.2",
+    "fs-capacitor": "^6.2.0",
     "graphql": "^15.5.0",
     "graphql-tools": "^8.3.6",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
-    "n": "^9.0.0",
-    "fs-capacitor": "^6.2.0",
-    "@prisma/client": "^4.6.0"
+    "n": "^9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.19.1",
