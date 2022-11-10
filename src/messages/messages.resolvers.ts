@@ -8,6 +8,9 @@ export default {
         where: {
           roomId: id,
         },
+        orderBy: {
+          createdAt: "asc",
+        },
       }),
     unreadTotal: ({ id }, _, { loggedInUser }) => {
       if (!loggedInUser) {
@@ -26,7 +29,7 @@ export default {
       });
     },
   },
-  Messages: {
+  Message: {
     user: ({ id }) => client.message.findUnique({ where: { id } }).user(),
   },
 };

@@ -20,7 +20,6 @@ export const uploadToS3 = async (file, userId, folderName) => {
         Body: readStream,
       })
       .promise();
-
     return Location;
   } catch (e) {
     console.log(e);

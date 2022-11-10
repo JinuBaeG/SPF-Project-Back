@@ -1,22 +1,21 @@
 import { gql } from "apollo-server-express";
 
 export default gql`
-  type Messages {
+  type Message {
     id: Int!
     payload: String!
     user: User!
     room: Room!
     read: Boolean!
-    createAt: String!
-    updateAt: String!
+    createdAt: String!
+    updatedAt: String!
   }
-
   type Room {
     id: Int!
     unreadTotal: Int!
     users: [User]
-    messages: [Messages]
-    createAt: String!
-    updateAt: String!
+    messages: [Message]
+    createdAt: String!
+    updatedAt: String!
   }
 `;

@@ -11,7 +11,7 @@ const seeRoomResolver = async (_, { id }, { loggedInUser, client }) => {
       },
     },
   });
-  console.log(room);
+
   return room;
 };
 

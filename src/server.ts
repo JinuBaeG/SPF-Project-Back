@@ -27,20 +27,23 @@ const server = new ApolloServer({
     }
   },
   subscriptions: {
-    onConnect: async ({ token }: { token?: String }) => {
+    onConnect: async ({ token }: any) => {
       if (!token) {
         throw new Error("You can not listen.");
       }
       const loggedInUser = await getUser(token);
-      return loggedInUser;
+
+      return {
+        loggedInUser,
+      };
     },
   },
 });
 
 const app = express();
 app.use(logger("dev"));
-app.use("/static", express.static("uploads"));
 server.applyMiddleware({ app });
+app.use("/static", express.static("uploads"));
 
 const httpsServer = http.createServer(app);
 server.installSubscriptionHandlers(httpsServer);
