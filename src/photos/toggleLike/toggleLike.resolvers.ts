@@ -10,7 +10,7 @@ const toggleLikeResolvers = async (_, { id }, { loggedInUser, client }) => {
     if (!photo) {
       return {
         ok: false,
-        error: "Photo not found.",
+        error: "피드를 찾을 수 없습니다.",
       };
     }
     const likeWhere = {

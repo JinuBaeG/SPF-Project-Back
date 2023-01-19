@@ -22,7 +22,6 @@
   },
   "homepage": "https://github.com/jinu9533/SonGym#readme",
   "dependencies": {
-    "14": "^3.1.6",
     "@aws-sdk/types": "^3.201.0",
     "@babel/cli": "^7.19.3",
     "@graphql-tools/load-files": "^6.6.1",
@@ -38,8 +37,7 @@
     "graphql": "^15.5.0",
     "graphql-tools": "^8.3.6",
     "jsonwebtoken": "^8.5.1",
-    "morgan": "^1.10.0",
-    "n": "^9.0.0"
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "@babel/core": "^7.19.1",

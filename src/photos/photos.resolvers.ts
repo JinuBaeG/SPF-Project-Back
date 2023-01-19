@@ -10,6 +10,17 @@ export default {
         },
       });
     },
+    feedUpload: ({ id }) => {
+      return client.feedUpload.findMany({
+        where: {
+          photo: {
+            some: {
+              id,
+            },
+          },
+        },
+      });
+    },
     hashtag: ({ id }) => {
       return client.hashtag.findMany({
         where: {
@@ -66,6 +77,17 @@ export default {
         return true;
       }
       return false;
+    },
+    feedCategoryList: async ({ id }) => {
+      return await client.feedCategoryList.findMany({
+        where: {
+          photo: {
+            some: {
+              id,
+            },
+          },
+        },
+      });
     },
   },
   Hashtag: {

@@ -11,36 +11,57 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  firstName String
-  lastName  String?
-  username  String    @unique
-  email     String    @unique
-  password  String
-  bio       String?
-  avatar    String?
-  photos    Photo[]
-  likes     Like[]
-  followers User[]    @relation("FollowRelation")
-  following User[]    @relation("FollowRelation")
-  comments  Comment[]
-  rooms     Room[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Message   Message[]
+  id               Int                @id @default(autoincrement())
+  firstName        String
+  lastName         String?
+  username         String             @unique
+  email            String             @unique
+  password         String
+  bio              String?
+  avatar           String?
+  photos           Photo[]
+  likes            Like[]
+  followers        User[]             @relation("FollowRelation")
+  following        User[]             @relation("FollowRelation")
+  comments         Comment[]
+  rooms            Room[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  Message          Message[]
+  group            Group[]
+  groupPresident   GroupPresident[]
+  tutor            Tutor[]
+  GroupJoinRequest GroupJoinRequest[]
 }
 
 model Photo {
-  id        Int       @id @default(autoincrement())
-  user      User      @relation(fields: [userId], references: [id])
-  userId    Int
-  file      String
-  caption   String?
-  hashtags  Hashtag[]
-  comments  Comment[]
-  likes     Like[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id               Int                @id @default(autoincrement())
+  user             User               @relation(fields: [userId], references: [id])
+  userId           Int
+  feedUpload       FeedUpload[]
+  feedCategoryList FeedCategoryList[]
+  caption          String?
+  hashtags         Hashtag[]
+  comments         Comment[]
+  likes            Like[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model FeedCategoryList {
+  id        Int      @id @default(autoincrement())
+  name      String
+  photo     Photo[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FeedUpload {
+  id        Int      @id @default(autoincrement())
+  imagePath String   @unique
+  photo     Photo[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Hashtag {
@@ -74,6 +95,192 @@ model Comment {
   updatedAt DateTime @updatedAt
 }
 
+// 그룹 - 시작
+model Group {
+  id               Int                @id @default(autoincrement())
+  name             String             @unique
+  discription      String
+  activeArea       String
+  address          String
+  addrRoad         String
+  addAddr          String
+  zipcode          String
+  areaLatitude     String
+  areaLongitude    String
+  sportsEvent      String
+  imagePath        String
+  groupPresident   GroupPresident     @relation(fields: [groupPresidentId], references: [id])
+  groupPresidentId Int
+  users            User[]
+  maxMember        Int
+  facility         Facility[]
+  tutor            Tutor[]
+  groupInfo        GroupInfo[]
+  groupTag         GroupTag[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  groupJoinRequest GroupJoinRequest[]
+}
+
+model GroupPresident {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  group     Group[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GroupInfo {
+  id          Int      @id @default(autoincrement())
+  group       Group[]
+  discription String
+  awardDate   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GroupTag {
+  id        Int      @id @default(autoincrement())
+  name      String
+  imagePath String
+  isUse     Boolean
+  isCustom  Boolean
+  group     Group[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GroupJoinRequest {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+  userId    Int
+  groupId   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, groupId])
+}
+
+// 그룹 - 끝
+// 시설 - 시작
+model Facility {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  discription    String
+  activeArea     String
+  address        String
+  addrRoad       String
+  addAddr        String
+  zipcode        String
+  areaLatitude   String
+  areaLongitude  String
+  operTime       String
+  group          Group[]
+  Tutor          Tutor[]
+  facilitySports FacilitySports[]
+  facilityInfo   FacilityInfo[]
+  facilityTag    FacilityTag[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model FacilityInfo {
+  id          Int        @id @default(autoincrement())
+  discription String
+  awardDate   String
+  facility    Facility[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model FacilityTag {
+  id        Int        @id @default(autoincrement())
+  name      String
+  imagePath String
+  isUse     Boolean
+  isCustom  Boolean
+  facility  Facility[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model FacilitySports {
+  id        Int        @id @default(autoincrement())
+  name      String
+  facility  Facility[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// 시설 - 끝
+// 튜터 - 시작
+model Tutor {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  name          String      @unique
+  activeArea    String
+  address       String
+  addrRoad      String
+  addAddr       String
+  zipcode       String
+  areaLatitude  String
+  areaLongitude String
+  group         Group[]
+  facility      Facility[]
+  tutorInfo     TutorInfo[]
+  tutorTag      TutorTag[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model TutorInfo {
+  id          Int      @id @default(autoincrement())
+  discription String
+  awardDate   String
+  Tutor       Tutor[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TutorTag {
+  id        Int      @id @default(autoincrement())
+  name      String
+  imagePath String
+  isUse     Boolean
+  isCustom  Boolean
+  Tutor     Tutor[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 튜터 - 끝
+// 공통 - 시작
+model SportsEvent {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 공통 - 끝
+// 채팅
 model Room {
   id        Int       @id @default(autoincrement())
   users     User[]

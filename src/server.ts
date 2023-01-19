@@ -44,7 +44,6 @@ const app = express();
 app.use(logger("dev"));
 server.applyMiddleware({ app });
 app.use("/static", express.static("uploads"));
-
 const httpsServer = http.createServer(app);
 server.installSubscriptionHandlers(httpsServer);
 

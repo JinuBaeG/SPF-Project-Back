@@ -4,7 +4,8 @@ export default gql`
   type Photo {
     id: Int!
     user: User!
-    file: String!
+    feedUpload: [FeedUpload]
+    feedCategoryList: [FeedCategoryList]
     caption: String
     likes: Int!
     commentNumber: Int!
@@ -12,6 +13,22 @@ export default gql`
     hashtag: [Hashtag]
     isMine: Boolean!
     isLiked: Boolean!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type FeedCategoryList {
+    id: Int
+    name: String
+    photo: Photo
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type FeedUpload {
+    id: Int!
+    photoId: Photo
+    imagePath: String
     createdAt: String!
     updatedAt: String!
   }

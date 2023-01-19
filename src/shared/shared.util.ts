@@ -7,10 +7,22 @@ AWS.config.update({
   },
 });
 
+export const uploadToAWS = async (files, userId, folderName) => {
+  const promises = [];
+  for (let i = 0; i < files.length; i++) {
+    promises.push(await uploadToS3(files[i], userId, folderName));
+  }
+
+  return promises.map((imagePath) => ({
+    where: { imagePath },
+    create: { imagePath },
+  }));
+};
+
 export const uploadToS3 = async (file, userId, folderName) => {
   try {
-    const { filename, createReadStream } = await file;
-    const readStream = createReadStream();
+    const { filename, mimeType, encoding, createReadStream } = await file;
+    const readStream = await createReadStream();
     const objectName = `${folderName}/${userId}-${Date.now()}-${filename}`;
     const { Location } = await new AWS.S3()
       .upload({
