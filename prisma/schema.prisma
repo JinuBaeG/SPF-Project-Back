@@ -1,0 +1,1002 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Config {
+  id           String   @id @default(uuid())
+  privacyTerms String?
+  gpsTerms     String?
+  useTerms     String?
+  businessInfo String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AdminNotice {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AdminFaq {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AdminUser {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  password    String
+  email       String?  @unique
+  phoneNumber String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  username            String
+  email               String   @unique
+  password            String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+  avatar              String?
+  gender              String?  @default("선택 안함")
+  googleConnect       Boolean  @default(false)
+  googleID            String?  @unique
+  kakaoConnect        Boolean  @default(false)
+  kakaoID             String?  @unique
+  naverConnect        Boolean  @default(false)
+  naverID             String?  @unique
+  appleConnect        Boolean  @default(false)
+  appleID             String?  @unique
+  phoneNumber         String?  @unique
+  privacyAccess       Boolean  @default(false)
+  usetermAccess       Boolean  @default(false)
+  locationAccess      Boolean  @default(false)
+
+  // 암시적 다대다 관계 설정 (references, fields 제거)
+  following           User[]   @relation("UserFollowing")
+  followers           User[]   @relation("UserFollowing")
+
+  // 관계 설정
+  board               Board[]
+  boardComment        BoardComment[]
+  boardLike           BoardLike[]
+  boardReComment      BoardReComment[]
+  comments            Comment[]
+  gallery             Gallery[]
+  groupJoinRequest    GroupJoinRequest[]
+  groupPresident      GroupPresident?
+  likes               Like[]
+  message             Message[]
+  notice              Notice[]
+  noticeComment       NoticeComment[]
+  noticeLike          NoticeLike[]
+  noticeReComment     NoticeReComment[]
+  photos              Photo[]
+  reComment           ReComment[]
+  tutorInquiry        TutorInquiry[]
+  tutorInquiryComment TutorInquiryComment[]
+  group               Group[]  @relation("GroupToUser")
+  rooms               Room[]   @relation("RoomToUser")
+  tutor               Tutor[]  @relation("TutorToUser")
+  tutorPresident      TutorPresident?
+  requestAddTutor     RequestAddTutor[]
+  report              Report[]
+  bugReport           BugReport[]
+  requestAddFacility  RequestAddFacility[]
+
+  // User가 차단한 사용자 목록
+  blocks              BlockUser[] @relation("UserBlocks")
+
+  // User를 차단한 사용자 목록
+  blockedBy           BlockUser[] @relation("UserIsBlockedBy")
+  
+  contestUser         ContestUser[]
+  contestReport       ContestReport[]
+}
+
+model BlockUser {
+  id        String   @id @default(uuid())
+  
+  userId    String
+  user      User     @relation("UserBlocks", fields: [userId], references: [id], onDelete: Cascade)
+  
+  blockedById String
+  blockedBy   User     @relation("UserIsBlockedBy", fields: [blockedById], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Photo {
+  id           String       @id @default(uuid())
+  userId       String
+  caption      String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  sportsEvent  String?
+  publicLevel  String?
+  feedCategory String?
+  comments     Comment[]
+  likes        Like[]
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedUpload   FeedUpload[] @relation("FeedUploadToPhoto")
+  hashtags     Hashtag[]    @relation("HashtagToPhoto")
+  Report       Report[]
+}
+
+model FeedCategoryList {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sortKey   Int      @unique
+}
+
+model FeedUpload {
+  id        String   @id @default(uuid())
+  imagePath String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  photo     Photo[]  @relation("FeedUploadToPhoto")
+}
+
+model Hashtag {
+  id        String   @id @default(uuid())
+  hashtag   String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  photos    Photo[]  @relation("HashtagToPhoto")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  photoId   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  photo     Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([photoId, userId])
+}
+
+model Comment {
+  id        String      @id @default(uuid())
+  payload   String
+  userId    String
+  photoId   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now())
+  photo     Photo       @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reComment ReComment[]
+}
+
+model ReComment {
+  id        String   @id @default(uuid())
+  userId    String
+  commentId String
+  payload   String
+  delYn     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model Group {
+  id               String         @id @default(uuid())
+  name             String         @unique
+  description      String?        // "description" -> "description"로 수정
+  activeArea       String?
+  address          String?
+  addrRoad         String?
+  areaLatitude     String?
+  areaLongitude    String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  sportsEvent      String
+  buildingNumber   String?
+  dongEubMyunName  String?
+  gusiName         String?
+  riName           String?
+  roadName         String?
+  sidoName         String?
+  zipcode          String?
+  groupPresidentId String
+  groupPresident   GroupPresident @relation(fields: [groupPresidentId], references: [id], onDelete: Cascade)
+  maxMember        Int            // 정원은 숫자가 더 적합하므로 Int로 수정
+  groupImageId     String?
+  groupImage       GroupImage?    @relation(fields: [groupImageId], references: [id], onDelete: Cascade)
+  board            Board[]
+  gallery          Gallery[]
+
+  groupJoinRequest GroupJoinRequest[]
+  notice           Notice[]
+  facility         Facility[]      @relation("FacilityToGroup")
+  groupInfo        GroupInfo[]     @relation("GroupToGroupInfo")
+  groupTag         GroupTag[]      @relation("GroupToGroupTag")
+  tutor            Tutor[]         @relation("GroupToTutor")
+  users            User[]          @relation("GroupToUser")
+}
+
+model GroupImage {
+  id        String   @id @default(uuid())
+  imagePath String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     Group[]
+}
+
+model GroupPresident {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     Group[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GroupInfo {
+  id          String   @id @default(uuid())
+  description String    // "description" -> "description"로 수정
+  awardDate   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  group       Group[]   @relation("GroupToGroupInfo")
+
+  @@unique([description, awardDate]) // "description" -> "description"로 수정
+}
+
+model GroupTag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  imagePath String?
+  group     Group[]  @relation("GroupToGroupTag")
+}
+
+model GroupJoinRequest {
+  id        String   @id @default(uuid())
+  userId    String
+  groupId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+model Tutor {
+  id                  String                @id @default(uuid())
+  name                String
+  activeArea          String?
+  address             String?
+  addrRoad            String?
+  detailAddress       String?
+  areaLatitude        String?
+  areaLongitude       String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  buildingNumber      String?
+  dongEubMyunName     String?
+  gusiName            String?
+  riName              String?
+  roadName            String?
+  sidoName            String?
+  zipcode             String?
+  tutorImageId        String?
+  tutorImage          TutorImage?           @relation(fields: [tutorImageId], references: [id], onDelete: Cascade)
+  description         String?               // "description" -> "description"으로 수정
+  access              Boolean               @default(false)
+  maxMember           Int                   @default(0)
+  board               Board[]
+  gallery             Gallery[]
+  notice              Notice[]
+  tutorInquiry        TutorInquiry[]
+  tutorInquiryComment TutorInquiryComment[]
+  tutorSportsEvent    TutorSportsEvent[]
+  facility            Facility[]            @relation("FacilityToTutor")
+  group               Group[]               @relation("GroupToTutor")
+  tutorInfo           TutorInfo[]           @relation("TutorToTutorInfo")
+  tutorTag            TutorTag[]            @relation("TutorToTutorTag")
+  user                User[]                @relation("TutorToUser")
+  tutorPresident      TutorPresident?       @relation(fields: [tutorPresidentId], references: [id], onDelete: Cascade)
+  tutorPresidentId    String?
+}
+
+model TutorPresident {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tutor     Tutor[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TutorSportsEvent {
+  id        String   @id @default(uuid())
+  name      String
+  tutorId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tutor     Tutor    @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+}
+
+model TutorInquiry {
+  id                  String                @id @default(uuid())
+  tutorId             String
+  userId              String?
+  inquiryTitle        String
+  inquiryDescription  String                // "description" -> "description"으로 수정
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  inquiryResponse     Boolean?              @default(false)
+  tutor               Tutor                 @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  user                User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tutorInquiryComment TutorInquiryComment[]
+}
+
+model TutorInquiryComment {
+  id                  String       @id @default(uuid())
+  userId              String
+  tutorId             String
+  answerOk            Boolean?     @default(false)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  responseDescription String       // "description" -> "description"으로 수정
+  responseTitle       String
+  tutorInquiryId      String
+  tutor               Tutor        @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorInquiry        TutorInquiry @relation(fields: [tutorInquiryId], references: [id], onDelete: Cascade)
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TutorImage {
+  id        String   @id @default(uuid())
+  imagePath String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tutor     Tutor[]
+}
+
+model TutorInfo {
+  id          String   @id @default(uuid())
+  description String    // "description" -> "description"으로 수정
+  awardDate   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tutor       Tutor[]  @relation("TutorToTutorInfo")
+
+  @@unique([description, awardDate])
+}
+
+model TutorTag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  imagePath String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tutor     Tutor[]  @relation("TutorToTutorTag")
+}
+
+model RequestAddTutor {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String   // "description" -> "description"으로 수정
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model Facility {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  activeArea      String
+  address         String
+  addrRoad        String
+  detailAddress   String?
+  areaLatitude    Float?
+  areaLongitude   Float?
+  operTime        String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  description     String           // "description" -> "description"으로 수정
+  sortation       String
+  buildingNumber  String
+  dongEubMyunName String
+  gusiName        String
+  riName          String
+  roadName        String
+  sidoName        String
+  zipcode         String
+  facilityImage   FacilityImage[]
+  facilityInfo    FacilityInfo[]   @relation("FacilityToFacilityInfo")
+  facilitySports  FacilitySports[] @relation("FacilityToFacilitySports")
+  facilityTag     FacilityTag[]    @relation("FacilityToFacilityTag")
+  group           Group[]          @relation("FacilityToGroup")
+  tutor           Tutor[]          @relation("FacilityToTutor")
+}
+
+model FacilityImage {
+  id        String     @id @default(uuid())
+  imagePath String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  facility  Facility[]
+}
+
+model FacilityInfo {
+  id          String     @id @default(uuid())
+  description String     // "description" -> "description"으로 수정
+  awardDate   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  facility    Facility[] @relation("FacilityToFacilityInfo")
+
+  @@unique([description, awardDate])   // "description" -> "description"
+}
+
+model FacilityTag {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  imagePath String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  facility  Facility[] @relation("FacilityToFacilityTag")
+}
+
+model FacilitySports {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  facility  Facility[] @relation("FacilityToFacilitySports")
+}
+
+model RequestAddFacility {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String   // "description" -> "description"으로 수정
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+model Board {
+  id           String         @id @default(uuid())
+  userId       String
+  groupId      String?
+  tutorId      String?
+  title        String
+  description  String           // "description" -> "description"
+  sortation    String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  hits         Int              @default(0)
+  group        Group?           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tutor        Tutor?           @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  boardComment BoardComment[]
+  boardLike    BoardLike[]
+  Report       Report[]
+}
+
+model BoardComment {
+  id             String           @id @default(uuid())
+  userId         String
+  boardId        String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  payload        String
+  delYn          Boolean          @default(false)
+  board          Board            @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  boardReComment BoardReComment[]
+}
+
+model BoardReComment {
+  id             String       @id @default(uuid())
+  userId         String
+  boardCommentId String
+  payload        String
+  delYn          Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  boardComment   BoardComment @relation(fields: [boardCommentId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BoardLike {
+  id        String   @id @default(uuid())
+  userId    String
+  boardId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, userId])
+}
+
+model Notice {
+  id            String          @id @default(uuid())
+  userId        String
+  groupId       String?
+  tutorId       String?
+  title         String
+  description   String           // "description" -> "description"
+  sortation     String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  hits          Int              @default(0)
+  group         Group?           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tutor         Tutor?           @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noticeComment NoticeComment[]
+  noticeLike    NoticeLike[]
+  Report        Report[]
+}
+
+model NoticeComment {
+  id              String            @id @default(uuid())
+  userId          String
+  noticeId        String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  payload         String
+  notice          Notice            @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  NoticeReComment NoticeReComment[]
+}
+
+model NoticeReComment {
+  id              String        @id @default(uuid())
+  userId          String
+  noticeCommentId String
+  payload         String
+  delYn           Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  noticeComment   NoticeComment @relation(fields: [noticeCommentId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NoticeLike {
+  id        String   @id @default(uuid())
+  userId    String
+  noticeId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, userId])
+}
+
+model Gallery {
+  id           String         @id @default(uuid())
+  userId       String
+  groupId      String?
+  tutorId      String?
+  title        String
+  description  String          // "description" -> "description"
+  sortation    String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  group        Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tutor        Tutor?          @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  galleryImage GalleryImage[]
+}
+
+model GalleryImage {
+  id        String   @id @default(uuid())
+  imagePath String   @unique
+  galleryId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gallery   Gallery  @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+}
+
+
+model SportsEvent {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  imagePath String?
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  imagePath String?
+  sortation String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Room {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  messages  Message[]
+  users     User[]    @relation("RoomToUser")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  payload   String
+  userId    String
+  roomId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  read      Boolean  @default(false)
+  room      Room     @relation(fields: [roomId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Banner {
+  id                  String                @id @default(uuid())
+  title               String
+  description         String?
+  sidoName            String?
+  gusiName            String?
+  dongEubMyunName     String?
+  riName              String?
+  roadName            String?
+  buildingNumber      String?
+  zipcode             String?
+  activeArea          String?
+  address             String?
+  addrRoad            String?
+  detailAddress       String?
+  areaLatitude        String?
+  areaLongitude       String?
+  sportsEvent         String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  bannerImagePath     String?
+  sortation           String?
+  bannerDiscImagePath BannerDiscImagePath[]
+  externalLink        String?
+}
+
+model BannerDiscImagePath {
+  id        String   @id @default(uuid())
+  bannerId  String?
+  imagePath String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Banner    Banner?  @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photoId           String?
+  photo             Photo?   @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  boardId           String?
+  board             Board?   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  noticeId          String?
+  notice            Notice?  @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  reportDescription String
+  reportSortation   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model BugReport {
+  id                String           @id @default(uuid())
+  userId            String
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reportTitle       String
+  reportDescription String
+  bugReportImage    BugReportImage[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model BugReportImage {
+  id          String     @id @default(uuid())
+  bugReport   BugReport? @relation(fields: [bugReportId], references: [id], onDelete: Cascade)
+  bugReportId String?
+  imagePath   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// 대회 관련 테이블
+model Contest {
+  id                       String                     @id @default(uuid())
+  contestId                String                     @unique
+  contestName              String?
+  contestStartDate         String?
+  contestEndDate           String?
+  contestRecruitStart      String?
+  contestRecruitEnd        String?
+  contestPlace             String?
+  buildingNumber           String?
+  dongEubMyunName          String?
+  gusiName                 String?
+  riName                   String?
+  roadName                 String?
+  sidoName                 String?
+  zipcode                  String?
+  areaLatitude             String?
+  areaLongitude            String?
+  contestPlaceAddress      String?
+  contestStadium           String?
+  contestHost              String?
+  contestSponsorShip       String?
+  contestSports            String?
+  contestSportsDetail      String?
+  contestDescription       String?
+  contestTerms             String?
+  contestAwardDetails      String?
+  contestEntryFee          String?
+  contestStatus            String?                    @default("모집")
+  contestPaymentMethod     String?
+  contestBanner            String?
+  contestRecruitNumber     Int?
+  contestUser              ContestUser[]
+  contestNotice            ContestNotice[]
+  contestReport            ContestReport[]
+  contestTierGroup         ContestTierGroup[]
+  contestMatchGroup        ContestMatchGroup[]
+  contestTournamentGroup   ContestTournamentGroup[]
+  contestGroupMatchHistory ContestGroupMatchHistory[]
+  contestTournamentHistory ContestTournamentHistory[]
+  contestCourt             ContestCourt[]
+  contestTeam              ContestTeam[]
+  contestGroupMatchResult  ContestGroupMatchResult[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+}
+
+model ContestUser {
+  id                   String            @id @default(uuid())
+  contestId            String?
+  contest              Contest?          @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  userId               String?
+  user                 User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAge              Int
+  userGender           String
+  userTier             String
+  contestSports        String
+  contestSportsType    String
+  contestPaymentId     String            @unique
+  contestPaymentStatus String            @default("결제진행")
+  contestTeamId        String?
+  contestTeam          ContestTeam?      @relation(fields: [contestTeamId], references: [id], onDelete: Cascade)
+  contestTierGroupId   String?
+  contestTierGroup     ContestTierGroup? @relation(fields: [contestTierGroupId], references: [id], onDelete: Cascade)
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@unique([contestId, userId])
+}
+
+model ContestTeam {
+  id                       String                     @id @default(uuid())
+  teamName                 String
+  contestId                String?
+  contest                  Contest?                   @relation(fields: [contestId], references: [contestId])
+  contestUser              ContestUser[]
+  contestTierGroupId       String?
+  contestTierGroup         ContestTierGroup?          @relation(fields: [contestTierGroupId], references: [id])
+  contestMatchGroupId      String?
+  contestMatchGroup        ContestMatchGroup?         @relation(fields: [contestMatchGroupId], references: [id])
+  contestTournamentGroupId String?
+  contestTournamentGroup   ContestTournamentGroup?    @relation(fields: [contestTournamentGroupId], references: [id])
+  contestTeam              ContestGroupMatchHistory[] @relation("ContestTeam")
+  opponentTeam             ContestGroupMatchHistory[] @relation("OpponentTeam")
+  contestTournamentTeam    ContestTournamentHistory[] @relation("ContestTournamentTeam")
+  opponentTournamentTeam   ContestTournamentHistory[] @relation("OpponentTournamentTeam")
+  contestGroupMatchResult  ContestGroupMatchResult[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  @@unique([teamName, contestId])
+}
+
+model ContestTierGroup {
+  id                       String                     @id @default(uuid())
+  groupName                String
+  roundAdvance             Int?
+  startRound               Int?
+  createMatchYN            Boolean                    @default(false)
+  contestId                String?
+  contest                  Contest?                   @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestUser              ContestUser[]
+  contestTeam              ContestTeam[]
+  contestMatchGroup        ContestMatchGroup[]
+  contestTournamentGroup   ContestTournamentGroup[]
+  contestTournamentHistory ContestTournamentHistory[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  @@index([contestId], map: "idx_contestTierGroup_contestId")  // contestId에 인덱스를 추가하여 검색 최적화
+}
+
+model ContestCourt {
+  id                       String                     @id @default(uuid())
+  courtName                String
+  contestId                String?
+  contest                  Contest?                   @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestGroupMatchHistory ContestGroupMatchHistory[]
+  contestTournamentHistory ContestTournamentHistory[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  @@index([contestId], map: "idx_contestCourt_contestId")  // contestId에 인덱스를 추가하여 검색 최적화
+}
+
+model ContestMatchGroup {
+  id                       String                     @id @default(uuid())
+  groupNo                  Int
+  contestId                String?
+  contest                  Contest?                   @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestTierGroupId       String?
+  contestTierGroup         ContestTierGroup?          @relation(fields: [contestTierGroupId], references: [id], onDelete: Cascade)
+  contestTeam              ContestTeam[]
+  contestGroupMatchHistory ContestGroupMatchHistory[]
+  contestGroupMatchResult  ContestGroupMatchResult[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  @@index([contestId], map: "idx_contest_match_group_contestId")
+  @@index([contestTierGroupId], map: "idx_contest_match_group_tier_groupId")
+}
+
+model ContestGroupMatchResult {
+  id                       String                     @id @default(uuid())
+  contestId                String?
+  contest                  Contest?                   @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestMatchGroupId      String?
+  contestMatchGroup        ContestMatchGroup?         @relation(fields: [contestMatchGroupId], references: [id], onDelete: Cascade)
+  contestTeamId            String?
+  contestTeam              ContestTeam?               @relation(fields: [contestTeamId], references: [id])
+  totalWin                 Int?                       @default(0)
+  totalLose                Int?                       @default(0)
+  totalWinScore            Int?                       @default(0)
+  totalLoseScore           Int?                       @default(0)
+  totalScore               Int?                       @default(0)
+  contestGroupMatchHistory ContestGroupMatchHistory[] @relation("ContestGroupMatchRelation")
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+
+  @@unique([contestMatchGroupId, contestTeamId])
+}
+
+model ContestGroupMatchHistory {
+  id                        String                   @id @default(uuid())
+  matchNo                   Int?
+  contestId                 String?
+  contest                   Contest?                 @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestTeamId             String?
+  contestTeam               ContestTeam?             @relation("ContestTeam", fields: [contestTeamId], references: [id])
+  opponentTeamId            String?
+  opponentTeam              ContestTeam?             @relation("OpponentTeam", fields: [opponentTeamId], references: [id])
+  contestMatchGroupId       String?
+  contestMatchGroup         ContestMatchGroup?       @relation(fields: [contestMatchGroupId], references: [id], onDelete: Cascade)
+  contestGroupMatchResultId String?
+  contestGroupMatchResult   ContestGroupMatchResult? @relation("ContestGroupMatchRelation", fields: [contestGroupMatchResultId], references: [id])
+  contestCourtId            String?
+  contestCourt              ContestCourt?            @relation(fields: [contestCourtId], references: [id])
+  matchTime                 String?
+  matchTimeHour             String?
+  matchTimeMin              String?
+  isWinner                  Boolean?
+  resultScore               String?
+  winScore                  Int?
+  loseScore                 Int?
+  status                    String?
+  startTime                 String?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+
+  @@unique([contestTeamId, opponentTeamId])
+  @@index([contestId], map: "idx_contest_group_match_history_contestId")
+  @@index([contestMatchGroupId], map: "idx_contest_group_match_groupId")
+}
+model ContestTournamentGroup {
+  id                  String                     @id @default(uuid())
+  matchNo             Int?
+  name                String?
+  nextMatchId         String?
+  tournamentRoundText String?
+  startTime           String?                    @default("")
+  startTimeHour       String?
+  startTimeMin        String?
+  state               String?                    @default("NO_PARTY")
+  contestId           String?
+  contest             Contest?                   @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestTierGroupId  String?
+  contestTierGroup    ContestTierGroup?          @relation(fields: [contestTierGroupId], references: [id], onDelete: Cascade)
+  contestTeam         ContestTeam[]
+  participants        ContestTournamentHistory[]
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  @@index([contestId], map: "idx_contest_tournament_group_contestId")
+  @@index([contestTierGroupId], map: "idx_contest_tournament_group_tierGroupId")
+}
+
+model ContestTournamentHistory {
+  id                       String                 @id @default(uuid())
+  contestId                String?
+  contest                  Contest?               @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  contestTierGroupId       String?
+  contestTierGroup         ContestTierGroup?      @relation(fields: [contestTierGroupId], references: [id], onDelete: Cascade)
+  contestTournamentGroupId String
+  contestTournamentGroup   ContestTournamentGroup @relation(fields: [contestTournamentGroupId], references: [id], onDelete: Cascade)
+  name                     String?                @default("TBD")
+  contestTeamId            String?
+  contestTeam              ContestTeam?           @relation("ContestTournamentTeam", fields: [contestTeamId], references: [id], onDelete: Cascade)
+  opponentTeamId           String?
+  opponentTeam             ContestTeam?           @relation("OpponentTournamentTeam", fields: [opponentTeamId], references: [id], onDelete: Cascade)
+  contestCourtId           String?
+  contestCourt             ContestCourt?          @relation(fields: [contestCourtId], references: [id])
+  isWinner                 Boolean?               @default(false)
+  totalScore               String?
+  resultText               String?
+  loseScore                Int?
+  status                   String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+
+  @@unique([contestTeamId, opponentTeamId])
+  @@index([contestId], map: "idx_contest_tournament_history_contestId")
+  @@index([contestTournamentGroupId], map: "idx_contest_tournament_group_groupId")
+}
+
+model ContestNotice {
+  id                String   @id @default(uuid())
+  contestId         String?
+  contest           Contest? @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  noticeTitle       String?
+  noticeDescription String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([contestId], map: "idx_contest_notice_contestId")
+}
+
+model ContestReport {
+  id                String   @id @default(uuid())
+  contestId         String?
+  contest           Contest? @relation(fields: [contestId], references: [contestId], onDelete: Cascade)
+  userId            String
+  user              User     @relation(fields: [userId], references: [id])
+  reportType        String?
+  reportTitle       String?
+  reportDescription String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([contestId, userId])
+  @@index([contestId], map: "idx_contest_report_contestId")
+}

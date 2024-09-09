@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "./build",
+    "rootDirs": ["./src"],
+    "allowJs": true,
+    "target": "ES2020", // ECMAScript 2020 이상의 기능을 사용할 수 있도록 설정
+    "module": "ESNext", // ESM 모듈 사용
+    "moduleResolution": "Node", // 모듈 해석 방식을 Node.js 방식으로 설정
+    "esModuleInterop": true, // CommonJS 모듈 간의 호환성을 지원
+    "forceConsistentCasingInFileNames": true, // 파일명 대소문자 일관성 검사
+    "strict": true, // 엄격한 타입 검사 옵션 활성화
+    "skipLibCheck": true, // 라이브러리 검사 생략
+    "allowSyntheticDefaultImports": true, // 기본 내보내기 없이도 import 사용 가능
+    "typeRoots" : ["./@types", "./node_modules/@types"],
+  },
+  "include": ["src/**/*"], // 모든 src 파일을 컴파일 대상으로 포함
+  "exclude": ["node_modules", "build"],
+  "ts-node": {
+    "esm": true
+  },
+}
